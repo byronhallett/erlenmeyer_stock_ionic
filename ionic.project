@@ -1,0 +1,10 @@
+{
+  "name": "stock",
+  "app_id": "",
+  "proxies": [
+    {
+      "path": "/api",
+      "proxyUrl": "http://127.0.0.1/~byron/stock/server/api"
+    }
+  ]
+}
