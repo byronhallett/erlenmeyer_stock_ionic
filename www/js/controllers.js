@@ -28,7 +28,7 @@ angular.module('starter.controllers', [])
   };
 })
 
-.controller('AppCtrl', function($scope, $ionicModal, $timeout, httpService, $localStorage, $sessionStorage) {
+.controller('AppCtrl', function($scope, $ionicModal, $timeout, httpService, $window) {
 
   // With the new view caching in Ionic, Controllers are only called
   // when they are recreated or on app start, instead of every page change.
@@ -59,8 +59,8 @@ angular.module('starter.controllers', [])
   };
 
   $scope.logout = function () {
-    delete $localStorage.current_user_id;
-    delete $localStorage.current_user_name;
+    delete window.localStorage['current_user_id'];
+    delete window.localStorage['current_user_name'];
   }
 
   // Perform the login action when the user submits the login form
@@ -79,11 +79,13 @@ angular.module('starter.controllers', [])
       // Verify Successful Login
       if (angular.isDefined($scope.loginResponse['error'])) {
         $scope.errmsg = $scope.loginResponse['error_message'];
+      } else if($scope.loginResponse == null){
+        $scope.errmsg = "No connection to server";
       } else {
-        //Save login to session and close modal
-        $localStorage.current_user_id = $scope.loginResponse['user_id'];
-        $localStorage.current_user_name = $scope.loginResponse['username']
-        // $scope.reloadItems();
+        //Save login to session and close modal:
+        window.localStorage['current_user_id'] = $scope.loginResponse['user_id'];
+        window.localStorage['current_user_name'] = $scope.loginResponse['username']
+        $scope.reloadItems();
         $scope.errmsg = '';
         $scope.closeLogin();
       }
@@ -91,10 +93,10 @@ angular.module('starter.controllers', [])
   };
 
   $scope.reloadItems = function() {
-    if (angular.isDefined($localStorage.current_user_id)){
+    if (angular.isDefined(window.localStorage['current_user_id'])){
       
       //From my httpService, establish the login function as a promise
-      var reloadPromise = httpService.downloadItems($localStorage.current_user_id);
+      var reloadPromise = httpService.downloadItems(window.localStorage['current_user_id']);
 
       // Run the promise, and perform then actions on request recieved
       reloadPromise.then(function(result) {
