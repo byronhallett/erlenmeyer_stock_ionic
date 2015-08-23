@@ -1,5 +1,9 @@
 /* Empty. Add your own CSS if you like */
 
-.quick-transition {
-  
+.sell-button {
+	float: right;
+}
+
+.list {
+	margin-right: 0;
 }

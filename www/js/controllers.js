@@ -13,8 +13,6 @@ angular.module('starter.controllers', [])
   
   var downloadItems = function (userId){
 
-    // TODO: ERROR IN PARSING JSON AS IT IS RETURNED
-
     var itemURL = "/api/api_category_auth.php";
     return $http.post(itemURL, {'user_id': userId})
     .then(function (result){
@@ -61,6 +59,9 @@ angular.module('starter.controllers', [])
   $scope.logout = function () {
     delete window.localStorage['current_user_id'];
     delete window.localStorage['current_user_name'];
+    delete window.localStorage['category_array'];
+    delete window.localStorage['item_array'];
+    location.reload();
   }
 
   // Perform the login action when the user submits the login form
@@ -98,24 +99,32 @@ angular.module('starter.controllers', [])
       //From my httpService, establish the login function as a promise
       var reloadPromise = httpService.downloadItems(window.localStorage['current_user_id']);
 
-      // Run the promise, and perform then actions on request recieved
       reloadPromise.then(function(result) {
         $scope.categories = result['category_array'];
-        $scope.items = result['item_array'];
+        $scope.items = result['item_array']
+        // window.localStorage['category_array'] = JSON.stringify($scope.categories);
+        // window.localStorage['item_array'] = JSON.stringify($scope.items);
+        $scope.$broadcast('scroll.refreshComplete');
       });
     } else {
       $scope.categories = [];
+      $scope.$broadcast('scroll.refreshComplete');
     }
   };
 
 })
 
 .controller('CategoriesCtrl', function($scope) {
-  $scope.reloadItems();
 })
 
-.controller('CategoryCtrl', function($scope, $stateParams) {
-  $scope.reloadItems();
+.controller('CategoryCtrl', function($scope, $stateParams, $filter) {
+  var this_category_id = $stateParams['categoryId'];
+  // if (!angular.isDefined($scope.categories)) {
+  //   $scope.categories = JSON.parse()
+  // }
+  $scope.categoryName = $filter('filter')($scope.categories,{category_id: this_category_id}, true)[0]['category_name'];
+  $scope.itemsInCategory = $filter('filter')($scope.items,{category_id: this_category_id}, true);
+  // itemsInCategory = $filter('filter')($scope.items,{category_id: this_category}, true);
 })
 
 .controller('ItemsCtrl', function($scope, $stateParams) {
