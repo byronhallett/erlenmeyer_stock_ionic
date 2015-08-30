@@ -3,7 +3,7 @@ angular.module('starter.controllers', [])
 .factory('httpService', function($http){
 
   var loginUser = function (user, pass){
-    var loginURL = "/api/api_login_auth.php";
+    var loginURL = "http://stock.erlenmeyer.com.au/server/api/api_login_auth.php";
     return $http.post(loginURL, {'username': user, 
       'password': pass})
     .then(function (result){
@@ -13,7 +13,7 @@ angular.module('starter.controllers', [])
   
   var downloadItems = function (userId){
 
-    var itemURL = "/api/api_category_auth.php";
+    var itemURL = "http://stock.erlenmeyer.com.au/server/api//api_category_auth.php";
     return $http.post(itemURL, {'user_id': userId})
     .then(function (result){
       return result.data;
@@ -22,7 +22,7 @@ angular.module('starter.controllers', [])
 
   var sellItem = function (itemId, count){
 
-    var sellURL = "/api/api_sell.php";
+    var sellURL = "http://stock.erlenmeyer.com.au/server/api/api_sell.php";
     return $http.post(sellURL, {'sell_amount': count, 'item_id': itemId})
     .then(function (result){
       return result.data;
@@ -31,7 +31,7 @@ angular.module('starter.controllers', [])
 
   var undoItem = function (itemId){
 
-    var undoURL = "/api/api_undo_sell.php";
+    var undoURL = "http://stock.erlenmeyer.com.au/server/api/api_undo_sell.php";
     return $http.post(undoURL, {'item_id': itemId})
     .then(function (result){
       return result.data;
