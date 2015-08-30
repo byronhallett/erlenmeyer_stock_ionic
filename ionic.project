@@ -1,6 +1,6 @@
 {
   "name": "stock",
-  "app_id": "",
+  "app_id": "au.com.erlenmeyer.stock",
   "proxies": [
     {
       "path": "/api",
