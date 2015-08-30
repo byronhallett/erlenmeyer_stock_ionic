@@ -1,8 +1,16 @@
-<ion-view view-title="single">
+<ion-view view-title="{{categoryName}}">
   <ion-content>
+	  <ion-refresher
+	    pulling-text="Pull to refresh..."
+	    on-refresh="reloadItems()">
+		</ion-refresher>
     <ion-list>
       <ion-item ng-repeat="item in itemsInCategory">
-        {{item.item_name}}
+        <div class="button-text-left">{{item.item_name}}</div>
+        <div class="button-text-right">{{item.current_stock}}</div>
+        <ion-option-button class="button-negative" ng-click="undoSell({{item}},$index)">Undo Sale</ion-option-button>
+        <ion-option-button class="button-positive" ng-click="sellItem({{item}},1,$index)">sell 1</ion-option-button>
+        <ion-option-button class="button-positive" ng-click="sellItem({{item}},3,$index)">sell 3</ion-option-button>
       </ion-item>
     </ion-list>
   </ion-content>

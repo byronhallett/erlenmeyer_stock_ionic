@@ -1,9 +1,18 @@
 /* Empty. Add your own CSS if you like */
 
 .sell-button {
-	float: right;
+  float: right;
 }
 
 .list {
-	margin-right: 0;
+  margin-right: 0;
+}
+
+.button-text-left {
+  width:auto;
+  float: left;
+}
+.button-text-right {
+  width: auto;
+  float: right;
 }

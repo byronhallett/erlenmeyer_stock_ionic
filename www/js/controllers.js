@@ -20,13 +20,33 @@ angular.module('starter.controllers', [])
     });
   };
 
+  var sellItem = function (itemId, count){
+
+    var sellURL = "/api/api_sell.php";
+    return $http.post(sellURL, {'sell_amount': count, 'item_id': itemId})
+    .then(function (result){
+      return result.data;
+    });
+  };
+
+  var undoItem = function (itemId){
+
+    var undoURL = "/api/api_undo_sell.php";
+    return $http.post(undoURL, {'item_id': itemId})
+    .then(function (result){
+      return result.data;
+    });
+  };
+
   return { 
     loginUser: loginUser,
-    downloadItems: downloadItems
+    downloadItems: downloadItems,
+    sellItem: sellItem,
+    undoItem: undoItem
   };
 })
 
-.controller('AppCtrl', function($scope, $ionicModal, $timeout, httpService, $window) {
+.controller('AppCtrl', function($scope, $ionicModal, $timeout, httpService, $window, $filter) {
 
   // With the new view caching in Ionic, Controllers are only called
   // when they are recreated or on app start, instead of every page change.
@@ -112,19 +132,48 @@ angular.module('starter.controllers', [])
     }
   };
 
+  $scope.sellItem = function (item, count, idx) {
+
+    $scope.itemsInCategory[idx]['current_stock'] -= count;
+
+    //Use the http service to ensure that the item has been sold correctly
+    var sellPromise = httpService.sellItem(item.item_id, count);
+
+    sellPromise.then(function(result) {
+      $scope.sellResponse = result;
+      if ($scope.sellResponse != 'success') {
+        $scope.itemsInCategory[idx]['current_stock'] += count;
+      }
+    });
+  };
+
+  $scope.undoSell = function (item, idx) {
+
+    //Use the http service to ensure that the item has been sold correctly
+    var undoPromise = httpService.undoItem(item.item_id);
+
+    undoPromise.then(function(result) {
+      var undoResponse = result;
+      console.log('heard back', undoResponse);
+      if (undoInt = parseInt(undoResponse)) {
+        $scope.itemsInCategory[idx]['current_stock'] += undoInt;
+      }
+    });
+  };  
+  
+  $scope.reloadItemValues = function(this_category_id) {
+    $scope.categoryName = $filter('filter')($scope.categories,{category_id: this_category_id}, true)[0]['category_name'];
+    $scope.itemsInCategory = $filter('filter')($scope.items,{category_id: this_category_id}, true);
+  };
 })
+
 
 .controller('CategoriesCtrl', function($scope) {
 })
 
-.controller('CategoryCtrl', function($scope, $stateParams, $filter) {
-  var this_category_id = $stateParams['categoryId'];
-  // if (!angular.isDefined($scope.categories)) {
-  //   $scope.categories = JSON.parse()
-  // }
-  $scope.categoryName = $filter('filter')($scope.categories,{category_id: this_category_id}, true)[0]['category_name'];
-  $scope.itemsInCategory = $filter('filter')($scope.items,{category_id: this_category_id}, true);
-  // itemsInCategory = $filter('filter')($scope.items,{category_id: this_category}, true);
+.controller('CategoryCtrl', function($scope, $stateParams) {
+  $scope.reloadItemValues($stateParams['categoryId']);
+  
 })
 
 .controller('ItemsCtrl', function($scope, $stateParams) {
