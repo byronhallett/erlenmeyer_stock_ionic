@@ -13,7 +13,7 @@ angular.module('starter.controllers', [])
   
   var downloadItems = function (userId){
 
-    var itemURL = "http://stock.erlenmeyer.com.au/server/api//api_category_auth.php";
+    var itemURL = "http://stock.erlenmeyer.com.au/server/api/api_category_auth.php";
     return $http.post(itemURL, {'user_id': userId})
     .then(function (result){
       return result.data;

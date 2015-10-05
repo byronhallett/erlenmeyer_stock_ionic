@@ -23,6 +23,7 @@
     "org.apache.cordova.network-information"
   ],
   "cordovaPlatforms": [
-    "ios"
+    "ios",
+    "android"
   ]
 }
