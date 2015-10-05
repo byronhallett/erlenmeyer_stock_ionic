@@ -3,7 +3,7 @@ angular.module('starter.controllers', [])
 .factory('httpService', function($http){
 
   var loginUser = function (user, pass){
-    var loginURL = "http://stock.erlenmeyer.com.au/server/api/api_login_auth.php";
+    var loginURL = "/api/api_login_auth.php";
     return $http.post(loginURL, {'username': user, 
       'password': pass})
     .then(function (result){
@@ -13,7 +13,7 @@ angular.module('starter.controllers', [])
   
   var downloadItems = function (userId){
 
-    var itemURL = "http://stock.erlenmeyer.com.au/server/api/api_category_auth.php";
+    var itemURL = "/api/api_category_auth.php";
     return $http.post(itemURL, {'user_id': userId})
     .then(function (result){
       return result.data;
@@ -22,7 +22,7 @@ angular.module('starter.controllers', [])
 
   var sellItem = function (itemId, count){
 
-    var sellURL = "http://stock.erlenmeyer.com.au/server/api/api_sell.php";
+    var sellURL = "/api/api_sell.php";
     return $http.post(sellURL, {'sell_amount': count, 'item_id': itemId})
     .then(function (result){
       return result.data;
@@ -31,9 +31,17 @@ angular.module('starter.controllers', [])
 
   var undoItem = function (itemId){
 
-    var undoURL = "http://stock.erlenmeyer.com.au/server/api/api_undo_sell.php";
+    var undoURL = "/api/api_undo_sell.php";
     return $http.post(undoURL, {'item_id': itemId})
     .then(function (result){
+      return result.data;
+    });
+  };
+
+  var fetchSaleData = function (userId, rangeStart, rangeEnd){
+    var saleUrl = "api/api_sales_get";
+    return $http.post(saleUrl, {'user_id': userId, 'date_start': rangeStart, 'date_end': rangeEnd})
+    .then (function (result) {
       return result.data;
     });
   };
@@ -42,7 +50,8 @@ angular.module('starter.controllers', [])
     loginUser: loginUser,
     downloadItems: downloadItems,
     sellItem: sellItem,
-    undoItem: undoItem
+    undoItem: undoItem,
+    salesData: fetchSaleData
   };
 })
 
@@ -165,6 +174,26 @@ angular.module('starter.controllers', [])
     $scope.categoryName = $filter('filter')($scope.categories,{category_id: this_category_id}, true)[0]['category_name'];
     $scope.itemsInCategory = $filter('filter')($scope.items,{category_id: this_category_id}, true);
   };
+
+  $scope.getSalesSummary = function() {
+    if (angular.isDefined(window.localStorage['current_user_id'])) {
+      userId = window.localStorage['current_user_id'];
+      startDate = 
+      var salesDataPromise = httpService.salesData(userId, $scope.startDate, $scope.endDate);
+
+      undoPromise.then(function(result) {
+        var undoResponse = result;
+        console.log('heard back', undoResponse);
+        if (undoInt = parseInt(undoResponse)) {
+          $scope.itemsInCategory[idx]['current_stock'] += undoInt;
+        }
+      });
+
+      var salesTotal = 0;
+
+      $scope.salesTotal = salesTotal.toFixed(2);
+    }
+  };
 })
 
 
@@ -177,4 +206,10 @@ angular.module('starter.controllers', [])
 })
 
 .controller('ItemsCtrl', function($scope, $stateParams) {
-});
+})
+
+.controller('salesSummaryCtrl', function($scope, $stateParams) {
+  // $scope.startDate = (new Date()).format;
+  // console.log($scope.startDate);
+  // $scope.endDate = new Date()-2;
+})

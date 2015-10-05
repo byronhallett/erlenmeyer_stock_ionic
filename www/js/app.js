@@ -42,6 +42,16 @@ angular.module('starter', ['ionic', 'starter.controllers'])
       }
     })
 
+    .state('app.salesSummary', {
+      url: '/sales_summary',
+      views: {
+        'menuContent': {
+          templateUrl: 'templates/sales_summary.html',
+          controller: 'salesSummaryCtrl'
+        }
+      }
+    })
+
   .state('app.single', {
     url: '/categories/:categoryId',
     views: {
