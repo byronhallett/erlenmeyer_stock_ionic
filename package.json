@@ -1,6 +1,6 @@
 {
   "name": "stock",
-  "version": "1.0.0",
+  "version": "0.0.3",
   "description": "stock: An Ionic project",
   "dependencies": {
     "gulp": "^3.5.6",
