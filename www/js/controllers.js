@@ -39,8 +39,12 @@ angular.module('starter.controllers', [])
   };
 
   var fetchSaleData = function (userId, rangeStart, rangeEnd){
-    var saleUrl = "api/api_sales_get";
-    return $http.post(saleUrl, {'user_id': userId, 'date_start': rangeStart, 'date_end': rangeEnd})
+    var saleUrl = "api/api_sales_get.php";
+    var startDateUTC = rangeStart.getUTCFullYear() + "-" + (rangeStart.getUTCMonth() + 1) + "-" + rangeStart.getUTCDate();
+    var endDateUTC = rangeEnd.getUTCFullYear() + "-" + (rangeEnd.getUTCMonth() + 1) + "-" + rangeEnd.getUTCDate();
+    console.log(startDateUTC);
+    console.log(endDateUTC);
+    return $http.post(saleUrl, {'user_id': userId, 'date_start': startDateUTC, 'date_end': endDateUTC})
     .then (function (result) {
       return result.data;
     });
@@ -95,7 +99,7 @@ angular.module('starter.controllers', [])
 
   // Perform the login action when the user submits the login form
   $scope.doLogin = function() {
-    console.log('Login Pressed:', $scope.loginData);
+    // console.log('Login Pressed:', $scope.loginData);
 
     //From my httpService, establish the login function as a promise
     var loginPromise = httpService.loginUser($scope.loginData.username, 
@@ -163,7 +167,6 @@ angular.module('starter.controllers', [])
 
     undoPromise.then(function(result) {
       var undoResponse = result;
-      console.log('heard back', undoResponse);
       if (undoInt = parseInt(undoResponse)) {
         $scope.itemsInCategory[idx]['current_stock'] += undoInt;
       }
@@ -175,41 +178,116 @@ angular.module('starter.controllers', [])
     $scope.itemsInCategory = $filter('filter')($scope.items,{category_id: this_category_id}, true);
   };
 
-  $scope.getSalesSummary = function() {
+  $scope.getSalesSummary = function(startDate, endDate) {
+    
+    salesTotal = 0;
+
     if (angular.isDefined(window.localStorage['current_user_id'])) {
       userId = window.localStorage['current_user_id'];
-      startDate = 
-      var salesDataPromise = httpService.salesData(userId, $scope.startDate, $scope.endDate);
+      
+      var salesDataPromise = httpService.salesData(userId, startDate, endDate);
 
-      undoPromise.then(function(result) {
-        var undoResponse = result;
-        console.log('heard back', undoResponse);
-        if (undoInt = parseInt(undoResponse)) {
-          $scope.itemsInCategory[idx]['current_stock'] += undoInt;
-        }
+      salesDataPromise.then(function(result) {
+        var salesResponse = result;
       });
-
-      var salesTotal = 0;
 
       $scope.salesTotal = salesTotal.toFixed(2);
     }
   };
+
 })
 
+
+// INDIVIDUAL PAGE CONTROLLERS
 
 .controller('CategoriesCtrl', function($scope) {
 })
 
 .controller('CategoryCtrl', function($scope, $stateParams) {
   $scope.reloadItemValues($stateParams['categoryId']);
-  
 })
 
 .controller('ItemsCtrl', function($scope, $stateParams) {
 })
 
 .controller('salesSummaryCtrl', function($scope, $stateParams) {
-  // $scope.startDate = (new Date()).format;
-  // console.log($scope.startDate);
-  // $scope.endDate = new Date()-2;
+  
+  $scope.fromDate = new Date();
+  $scope.toDate = new Date();
+
+  var fromDatePickerCallback = function (val) {
+    if (typeof(val) === 'undefined') {
+      console.log('No date selected');
+    } else {
+      console.log('Selected date is : ', val);
+      var chosenDate = val;
+      chosenDate.setHours(new Date().getHours());
+      chosenDate.setMinutes(new Date().getMinutes());
+      chosenDate.setSeconds(new Date().getSeconds());
+      $scope.fromDate = chosenDate;
+      $scope.getSalesSummary($scope.fromDate, $scope.toDate);
+    }
+  };
+
+  var toDatePickerCallback = function (val) {
+  if (typeof(val) === 'undefined') {
+      console.log('No date selected');
+    } else {
+      console.log('Selected date is : ', val);
+      var chosenDate = val;
+      chosenDate.setHours(new Date().getHours());
+      chosenDate.setMinutes(new Date().getMinutes());
+      chosenDate.setSeconds(new Date().getSeconds());
+      $scope.toDate = chosenDate;
+      $scope.getSalesSummary($scope.fromDate, $scope.toDate);
+    }
+  };
+
+  $scope.fromDatePicker = {
+    titleLabel: 'From Date',  //Optional
+    setButtonType : 'button-assertive',  //Optional
+    todayButtonType : 'button-neutral',  //Optional
+    closeButtonType : 'button-neutral',  //Optional
+    templateType: 'popup', //Optional
+    inputDate: $scope.fromDate,    //Optional
+    callback: function (val) {    //Mandatory
+      fromDatePickerCallback(val);
+    }
+  };
+  $scope.toDatePicker = {
+    titleLabel: 'To Date',  //Optional
+    setButtonType : 'button-assertive',  //Optional
+    todayButtonType : 'button-neutral',  //Optional
+    closeButtonType : 'button-neutral',  //Optional
+    templateType: 'popup', //Optional
+    inputDate: $scope.toDate,    //Optional
+    callback: function (val) {    //Mandatory
+      toDatePickerCallback(val);
+    }
+  };
+
+  // $scope.datepickerObject = {
+  //     titleLabel: 'Title',  //Optional
+  //     todayLabel: 'Today',  //Optional
+  //     closeLabel: 'Close',  //Optional
+  //     setLabel: 'Set',  //Optional
+  //     setButtonType : 'button-assertive',  //Optional
+  //     todayButtonType : 'button-assertive',  //Optional
+  //     closeButtonType : 'button-assertive',  //Optional
+  //     inputDate: new Date(),    //Optional
+  //     mondayFirst: true,    //Optional
+  //     disabledDates: disabledDates, //Optional
+  //     weekDaysList: weekDaysList,   //Optional
+  //     monthList: monthList, //Optional
+  //     templateType: 'popup', //Optional
+  //     showTodayButton: 'true', //Optional
+  //     modalHeaderColor: 'bar-positive', //Optional
+  //     modalFooterColor: 'bar-positive', //Optional
+  //     from: new Date(2012, 8, 2),   //Optional
+  //     to: new Date(2018, 8, 25),    //Optional
+  //     callback: function (val) {    //Mandatory
+  //       datePickerCallback(val);
+  //     }
+  //   };
+
 })
