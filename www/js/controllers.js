@@ -2,8 +2,12 @@ angular.module('starter.controllers', [])
 
 .factory('httpService', function($http){
 
+  var local_env = "127.0.0.1/~/byron/stock/server";
+  var test_env = "";
+  var prod_env = "http://stock.erleneyer.com.au/server";
+
   var loginUser = function (user, pass){
-    var loginURL = "/api/api_login_auth.php";
+    var loginURL = local_env + "/api/api_login_auth.php";
     return $http.post(loginURL, {'username': user, 
       'password': pass})
     .then(function (result){
@@ -13,7 +17,7 @@ angular.module('starter.controllers', [])
   
   var downloadItems = function (userId){
 
-    var itemURL = "/api/api_category_auth.php";
+    var itemURL = local_env + "/api/api_category_auth.php";
     return $http.post(itemURL, {'user_id': userId})
     .then(function (result){
       return result.data;
@@ -22,7 +26,7 @@ angular.module('starter.controllers', [])
 
   var sellItem = function (itemId, count){
 
-    var sellURL = "/api/api_sell.php";
+    var sellURL = local_env + "/api/api_sell.php";
     return $http.post(sellURL, {'sell_amount': count, 'item_id': itemId})
     .then(function (result){
       return result.data;
@@ -31,7 +35,7 @@ angular.module('starter.controllers', [])
 
   var undoItem = function (itemId){
 
-    var undoURL = "/api/api_undo_sell.php";
+    var undoURL = local_env + "/api/api_undo_sell.php";
     return $http.post(undoURL, {'item_id': itemId})
     .then(function (result){
       return result.data;
@@ -39,7 +43,8 @@ angular.module('starter.controllers', [])
   };
 
   var fetchSaleData = function (userId, rangeStart, rangeEnd){
-    var saleUrl = "api/api_sales_get.php";
+    var saleUrl =local_env + "api/api_sales_get.php";
+    console.log(saleUrl);
     var startDateUTC = rangeStart.getUTCFullYear() + "-" + (rangeStart.getUTCMonth() + 1) + "-" + rangeStart.getUTCDate();
     var endDateUTC = rangeEnd.getUTCFullYear() + "-" + (rangeEnd.getUTCMonth() + 1) + "-" + rangeEnd.getUTCDate();
     console.log(startDateUTC);
@@ -219,12 +224,13 @@ angular.module('starter.controllers', [])
     if (typeof(val) === 'undefined') {
       console.log('No date selected');
     } else {
-      console.log('Selected date is : ', val);
       var chosenDate = val;
       chosenDate.setHours(new Date().getHours());
       chosenDate.setMinutes(new Date().getMinutes());
       chosenDate.setSeconds(new Date().getSeconds());
+      console.log('Selected date is : ', val);
       $scope.fromDate = chosenDate;
+      $scope.fromDatePicker['inputDate'] = chosenDate;
       $scope.getSalesSummary($scope.fromDate, $scope.toDate);
     }
   };
@@ -233,35 +239,38 @@ angular.module('starter.controllers', [])
   if (typeof(val) === 'undefined') {
       console.log('No date selected');
     } else {
-      console.log('Selected date is : ', val);
       var chosenDate = val;
       chosenDate.setHours(new Date().getHours());
       chosenDate.setMinutes(new Date().getMinutes());
       chosenDate.setSeconds(new Date().getSeconds());
+      console.log('Selected date is : ', val);
       $scope.toDate = chosenDate;
+      $scope.toDatePicker['inputDate'] = chosenDate;
       $scope.getSalesSummary($scope.fromDate, $scope.toDate);
     }
   };
 
   $scope.fromDatePicker = {
-    titleLabel: 'From Date',  //Optional
-    setButtonType : 'button-assertive',  //Optional
-    todayButtonType : 'button-neutral',  //Optional
-    closeButtonType : 'button-neutral',  //Optional
-    templateType: 'popup', //Optional
-    inputDate: $scope.fromDate,    //Optional
-    callback: function (val) {    //Mandatory
+    titleLabel: 'From Date',
+    setButtonType : 'button-assertive',
+    todayButtonType : 'button-neutral',
+    closeButtonType : 'button-neutral',
+    templateType: 'popup',
+    inputDate: $scope.fromDate,
+    to: new Date(),
+    callback: function (val) {
       fromDatePickerCallback(val);
     }
   };
   $scope.toDatePicker = {
-    titleLabel: 'To Date',  //Optional
-    setButtonType : 'button-assertive',  //Optional
-    todayButtonType : 'button-neutral',  //Optional
-    closeButtonType : 'button-neutral',  //Optional
-    templateType: 'popup', //Optional
-    inputDate: $scope.toDate,    //Optional
-    callback: function (val) {    //Mandatory
+    titleLabel: 'To Date',
+    setButtonType : 'button-assertive',
+    todayButtonType : 'button-neutral',
+    closeButtonType : 'button-neutral',
+    templateType: 'popup',
+    inputDate: $scope.toDate,
+    to: new Date(),
+    callback: function (val) {
       toDatePickerCallback(val);
     }
   };
