@@ -1,0 +1,33 @@
+<ion-view view-title="Sales Summary">
+  <ion-content>
+    <div class="list">
+      <label class="item">
+        <h2 class="date-header">From Date:</h2>
+        <ionic-datepicker input-obj="fromDatePicker">
+          <button class="button button-block button-positive"> {{fromDatePicker.inputDate | date:'dd - MMMM - yyyy'}}</button>
+        </ionic-datepicker>
+      </label>
+      <label class="item">
+        <h2 class="date-header">To Date:</h2>
+        <ionic-datepicker input-obj="toDatePicker">
+          <button class="button button-block button-positive"> {{toDatePicker.inputDate | date:'dd - MMMM - yyyy'}}</button>
+        </ionic-datepicker>
+      </label>
+      <label class="item calm" ng-show="priceTotal">
+        <h2 class="dark">Sales revenue: ${{priceTotal}}</h1>
+      </label>
+      <label class="item calm" ng-show="costTotal">
+        <h2 class="dark">Production cost: ${{costTotal}}</h1>
+      </label>
+      <label class="item calm" ng-show="salesTotal">
+        <h1 class="positive">Profit: ${{salesTotal}}</h1>
+      </label>
+      <label class="item calm" ng-show="salesTotal">
+        <p class="dark">Based on current item price and cost</p>
+      </label>
+      <label class="item calm" ng-show="bestSeller">
+        <p class="dark">Best seller: {{bestSeller['itemName']}} at ${{bestSeller['profit']}}</p>
+      </label>
+    </div>
+  </ion-content>
+</ion-view>
