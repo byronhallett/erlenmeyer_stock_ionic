@@ -2,12 +2,11 @@ angular.module('starter.controllers', [])
 
 .factory('httpService', function($http){
 
-  var local_env = "127.0.0.1/~/byron/stock/server";
-  var test_env = "";
+  var local_env = "";
   var prod_env = "http://stock.erleneyer.com.au/server";
 
   var loginUser = function (user, pass){
-    var loginURL = local_env + "/api/api_login_auth.php";
+    var loginURL = prod_env + "/api/api_login_auth.php";
     return $http.post(loginURL, {'username': user, 
       'password': pass})
     .then(function (result){
@@ -17,7 +16,7 @@ angular.module('starter.controllers', [])
   
   var downloadItems = function (userId){
 
-    var itemURL = local_env + "/api/api_category_auth.php";
+    var itemURL = prod_env + "/api/api_category_auth.php";
     return $http.post(itemURL, {'user_id': userId})
     .then(function (result){
       return result.data;
@@ -26,7 +25,7 @@ angular.module('starter.controllers', [])
 
   var sellItem = function (itemId, count){
 
-    var sellURL = local_env + "/api/api_sell.php";
+    var sellURL = prod_env + "/api/api_sell.php";
     return $http.post(sellURL, {'sell_amount': count, 'item_id': itemId})
     .then(function (result){
       return result.data;
@@ -35,7 +34,7 @@ angular.module('starter.controllers', [])
 
   var undoItem = function (itemId){
 
-    var undoURL = local_env + "/api/api_undo_sell.php";
+    var undoURL = prod_env + "/api/api_undo_sell.php";
     return $http.post(undoURL, {'item_id': itemId})
     .then(function (result){
       return result.data;
@@ -43,13 +42,30 @@ angular.module('starter.controllers', [])
   };
 
   var fetchSaleData = function (userId, rangeStart, rangeEnd){
-    var saleUrl =local_env + "api/api_sales_get.php";
-    console.log(saleUrl);
-    var startDateUTC = rangeStart.getUTCFullYear() + "-" + (rangeStart.getUTCMonth() + 1) + "-" + rangeStart.getUTCDate();
-    var endDateUTC = rangeEnd.getUTCFullYear() + "-" + (rangeEnd.getUTCMonth() + 1) + "-" + rangeEnd.getUTCDate();
-    console.log(startDateUTC);
-    console.log(endDateUTC);
-    return $http.post(saleUrl, {'user_id': userId, 'date_start': startDateUTC, 'date_end': endDateUTC})
+    var saleUrl =prod_env + "api/api_sales_get.php";
+
+    var startDate = rangeStart.setHours(0,0,0,0);
+    var endDate = rangeEnd.setHours(23,59,59,999);
+
+    // need to convert date time to mysql friendly
+    var startDateUTC = rangeStart.getUTCFullYear() + '-' +
+        ('00' + (rangeStart.getUTCMonth()+1)).slice(-2) + '-' +
+        ('00' + rangeStart.getUTCDate()).slice(-2) + ' ' + 
+        ('00' + rangeStart.getUTCHours()).slice(-2) + ':' + 
+        ('00' + rangeStart.getUTCMinutes()).slice(-2) + ':' + 
+        ('00' + rangeStart.getUTCSeconds()).slice(-2);
+
+    var endDateUTC = rangeEnd.getUTCFullYear() + '-' +
+        ('00' + (rangeEnd.getUTCMonth()+1)).slice(-2) + '-' +
+        ('00' + rangeEnd.getUTCDate()).slice(-2) + ' ' + 
+        ('00' + rangeEnd.getUTCHours()).slice(-2) + ':' + 
+        ('00' + rangeEnd.getUTCMinutes()).slice(-2) + ':' + 
+        ('00' + rangeEnd.getUTCSeconds()).slice(-2);
+
+    // Create hash object to send
+    var postData = {'user_id': userId, 'date_start': startDateUTC, 'date_end': endDateUTC};
+
+    return $http.post(saleUrl, postData)
     .then (function (result) {
       return result.data;
     });
@@ -184,8 +200,6 @@ angular.module('starter.controllers', [])
   };
 
   $scope.getSalesSummary = function(startDate, endDate) {
-    
-    salesTotal = 0;
 
     if (angular.isDefined(window.localStorage['current_user_id'])) {
       userId = window.localStorage['current_user_id'];
@@ -193,10 +207,49 @@ angular.module('starter.controllers', [])
       var salesDataPromise = httpService.salesData(userId, startDate, endDate);
 
       salesDataPromise.then(function(result) {
-        var salesResponse = result;
-      });
+        var salesData = result;
+        
+        var costTotal = 0;
+        var priceTotal = 0;
+        var salesByItem = {};
 
-      $scope.salesTotal = salesTotal.toFixed(2);
+        for (var i = salesData.length - 1; i >= 0; i--) {
+          // Add this sale to the sale by data
+          // If the item exists, increment, else add it
+          var thisSale = salesData[i];
+          if (salesByItem[thisSale['itemId']]) {
+            salesByItem[thisSale['itemId']]['profit'] += thisSale['salePrice'] - thisSale['saleCost'];
+          } else {
+            salesByItem[thisSale['itemId']] = {
+              'itemName': thisSale['itemName'],
+              'profit': (thisSale['salePrice'] - thisSale['saleCost'])
+            };
+          }
+          // next, increment price and cost
+          costTotal += thisSale['saleCost'];
+          priceTotal += thisSale['salePrice'];
+        }
+
+        // console.log(salesByItem);
+
+        //find the best seller
+        var bestSeller = {'itemName': "", 'profit': 0};
+        for (var itemKey in salesByItem) {
+          var thisItem = salesByItem[itemKey];
+          if (thisItem['profit'] > bestSeller['profit']) {
+            bestSeller = {
+              'itemName': thisItem['itemName'],
+              'profit': thisItem['profit'].toFixed(2)
+            };
+          }
+        };
+
+        // Assign these to $scope for access by angular 
+        $scope.bestSeller = bestSeller;
+        $scope.costTotal = costTotal.toFixed(2);
+        $scope.priceTotal = priceTotal.toFixed(2);
+        $scope.salesTotal = (priceTotal - costTotal).toFixed(2);
+      });
     }
   };
 
@@ -225,12 +278,9 @@ angular.module('starter.controllers', [])
       console.log('No date selected');
     } else {
       var chosenDate = val;
-      chosenDate.setHours(new Date().getHours());
-      chosenDate.setMinutes(new Date().getMinutes());
-      chosenDate.setSeconds(new Date().getSeconds());
       console.log('Selected date is : ', val);
       $scope.fromDate = chosenDate;
-      $scope.fromDatePicker['inputDate'] = chosenDate;
+      $scope.fromDatePicker['inputDate'] = $scope.fromDate;
       $scope.getSalesSummary($scope.fromDate, $scope.toDate);
     }
   };
@@ -240,12 +290,9 @@ angular.module('starter.controllers', [])
       console.log('No date selected');
     } else {
       var chosenDate = val;
-      chosenDate.setHours(new Date().getHours());
-      chosenDate.setMinutes(new Date().getMinutes());
-      chosenDate.setSeconds(new Date().getSeconds());
       console.log('Selected date is : ', val);
       $scope.toDate = chosenDate;
-      $scope.toDatePicker['inputDate'] = chosenDate;
+      $scope.toDatePicker['inputDate'] = $scope.toDate;
       $scope.getSalesSummary($scope.fromDate, $scope.toDate);
     }
   };
