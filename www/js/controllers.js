@@ -3,7 +3,7 @@ angular.module('starter.controllers', [])
 .factory('httpService', function($http){
 
   var local_env = "";
-  var prod_env = "http://stock.erleneyer.com.au/server";
+  var prod_env = "http://stock.erlenmeyer.com.au/server";
 
   var loginUser = function (user, pass){
     var loginURL = prod_env + "/api/api_login_auth.php";
