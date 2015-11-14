@@ -1,0 +1,13 @@
+"proxies": [
+  {
+    "path": "/api",
+    "proxyUrl": "http://stock.erlenmeyer.com.au/server/api"
+  }
+]
+
+"proxies": [
+  {
+    "path": "/api",
+    "proxyUrl": "127.0.0.1/~byron/stock"
+  }
+]

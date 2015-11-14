@@ -19,3 +19,13 @@
 .date-header{
 	text-align: center;
 }
+
+/* ng-hide fix*/
+.ng-hide-add,
+.ng-hide-remove {
+  display: none !important;
+}
+
+.ng-hide{
+  display:none !important;
+}
