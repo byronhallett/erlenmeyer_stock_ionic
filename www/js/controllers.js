@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 angular.module('starter.controllers', [])
 
 .factory('httpService', function($http){
@@ -79,6 +80,9 @@ angular.module('starter.controllers', [])
     salesData: fetchSaleData
   };
 })
+=======
+angular.module('erlenmeyer-stock.controllers', [])
+>>>>>>> develop
 
 .controller('AppCtrl', function($scope, $ionicModal, $timeout, httpService, $window, $filter) {
 
@@ -201,14 +205,19 @@ angular.module('starter.controllers', [])
 
   $scope.getSalesSummary = function(startDate, endDate) {
 
+    console.log("User id:");
+    console.log(window.localStorage['current_user_id']);
+
     if (angular.isDefined(window.localStorage['current_user_id'])) {
       userId = window.localStorage['current_user_id'];
       
       var salesDataPromise = httpService.salesData(userId, startDate, endDate);
-
+      console.log("PRE Request");
       salesDataPromise.then(function(result) {
         var salesData = result;
         
+        console.log(result);
+
         var costTotal = 0;
         var priceTotal = 0;
         var salesByItem = {};
@@ -249,6 +258,9 @@ angular.module('starter.controllers', [])
         $scope.costTotal = costTotal.toFixed(2);
         $scope.priceTotal = priceTotal.toFixed(2);
         $scope.salesTotal = (priceTotal - costTotal).toFixed(2);
+        $scope.summary_calculated = true;
+        console.log("POST REQUEST");
+        console.log($scope.summary_calculated);
       });
     }
   };
@@ -270,6 +282,13 @@ angular.module('starter.controllers', [])
 
 .controller('salesSummaryCtrl', function($scope, $stateParams) {
   
+  // Initialse the scope variables
+  $scope.bestSeller = "";
+  $scope.costTotal = 0;
+  $scope.priceTotal = 0;
+  $scope.salesTotal = 0;
+  $scope.summary_calculated = false;
+
   $scope.fromDate = new Date();
   $scope.toDate = new Date();
 
