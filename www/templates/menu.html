@@ -35,6 +35,11 @@
         <ion-item menu-close ng-click="logout()" href="#/app/categories">
           Log Out
         </ion-item>
+        <!-- Just a summary of the current user, no link -->
+        <ion-item>
+          <span><p>Signed in as {{currentUser}}</p></span>
+        </ion-item>
+
       </ion-list>
     </ion-content>
   </ion-side-menu>

@@ -4,11 +4,11 @@ angular.module('erlenmeyer-stock.services', [])
 
 .factory('httpService', function($http){
 
-  var local_env = "";
-  var prod_env = "http://stock.erlenmeyer.com.au/server";
+  var comp_env = "";
+  var mobile_env = "http://stock.erlenmeyer.com.au/server";
 
   var loginUser = function (user, pass){
-    var loginURL = prod_env + "/api/api_login_auth.php";
+    var loginURL = mobile_env + "/api/api_login_auth.php";
     return $http.post(loginURL, {'username': user, 
       'password': pass})
     .then(function (result){
@@ -18,7 +18,7 @@ angular.module('erlenmeyer-stock.services', [])
   
   var downloadItems = function (userId){
 
-    var itemURL = prod_env + "/api/api_category_auth.php";
+    var itemURL = mobile_env + "/api/api_category_auth.php";
     return $http.post(itemURL, {'user_id': userId})
     .then(function (result){
       return result.data;
@@ -27,7 +27,7 @@ angular.module('erlenmeyer-stock.services', [])
 
   var sellItem = function (itemId, count){
 
-    var sellURL = prod_env + "/api/api_sell.php";
+    var sellURL = mobile_env + "/api/api_sell.php";
     return $http.post(sellURL, {'sell_amount': count, 'item_id': itemId})
     .then(function (result){
       return result.data;
@@ -36,7 +36,7 @@ angular.module('erlenmeyer-stock.services', [])
 
   var undoItem = function (itemId){
 
-    var undoURL = prod_env + "/api/api_undo_sell.php";
+    var undoURL = mobile_env + "/api/api_undo_sell.php";
     return $http.post(undoURL, {'item_id': itemId})
     .then(function (result){
       return result.data;
@@ -44,7 +44,7 @@ angular.module('erlenmeyer-stock.services', [])
   };
 
   var fetchSaleData = function (userId, rangeStart, rangeEnd){
-    var saleUrl =prod_env + "api/api_sales_get.php";
+    var saleUrl =mobile_env + "api/api_sales_get.php";
 
     var startDate = rangeStart.setHours(0,0,0,0);
     var endDate = rangeEnd.setHours(23,59,59,999);

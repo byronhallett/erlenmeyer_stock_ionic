@@ -13,20 +13,20 @@
           <button class="button button-block button-positive"> {{toDatePicker.inputDate | date:'dd - MMMM - yyyy'}}</button>
         </ionic-datepicker>
       </label>
-      <label class="item calm" ng-hide="summary_calculated">
+      <label class="item calm">
         <h2 class="dark">Sales revenue: ${{priceTotal}}</h1>
       </label>
-      <label class="item calm" ng-hide="summary_calculated">
+      <label class="item calm">
         <h2 class="dark">Production cost: ${{costTotal}}</h1>
       </label>
-      <label class="item calm" ng-hide="summary_calculated">
+      <label class="item calm">
         <h1 class="positive">Profit: ${{salesTotal}}</h1>
       </label>
-      <label class="item calm" ng-hide="summary_calculated">
+      <label class="item calm">
         <p class="dark">Based on current item price and cost</p>
       </label>
-      <label class="item calm" ng-hide="summary_calculated">
-        <p class="dark">Best seller: {{bestSeller['itemName']}} at ${{bestSeller['profit']}}</p>
+      <label class="item calm">
+        <p class="dark">Best seller: {{bestSeller['itemName'] || 'item'}}, ${{bestSeller['profit'] || 0}}</p>
       </label>
     </div>
   </ion-content>

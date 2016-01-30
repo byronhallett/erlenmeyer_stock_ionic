@@ -8,6 +8,9 @@ angular.module('erlenmeyer-stock.controllers', [])
   // listen for the $ionicView.enter event:
   //$scope.$on('$ionicView.enter', function(e) {
   //});
+  //
+  
+  $scope.currentUser = window.localStorage['current_user_name'];
 
   // Form data for the login modal
   $scope.loginData = {};
@@ -59,7 +62,8 @@ angular.module('erlenmeyer-stock.controllers', [])
       } else {
         //Save login to session and close modal:
         window.localStorage['current_user_id'] = $scope.loginResponse['user_id'];
-        window.localStorage['current_user_name'] = $scope.loginResponse['username']
+        window.localStorage['current_user_name'] = $scope.loginResponse['username'];
+        $scope.currentUser = $scope.loginResponse['username'];
         $scope.reloadItems();
         $scope.errmsg = '';
         $scope.closeLogin();
@@ -119,68 +123,6 @@ angular.module('erlenmeyer-stock.controllers', [])
     $scope.itemsInCategory = $filter('filter')($scope.items,{category_id: this_category_id}, true);
   };
 
-  $scope.getSalesSummary = function(startDate, endDate) {
-
-    console.log("User id:");
-    console.log(window.localStorage['current_user_id']);
-
-    if (angular.isDefined(window.localStorage['current_user_id'])) {
-      userId = window.localStorage['current_user_id'];
-      
-      var salesDataPromise = httpService.salesData(userId, startDate, endDate);
-      console.log("PRE Request");
-      salesDataPromise.then(function(result) {
-        var salesData = result;
-        
-        console.log(result);
-
-        var costTotal = 0;
-        var priceTotal = 0;
-        var salesByItem = {};
-
-        for (var i = salesData.length - 1; i >= 0; i--) {
-          // Add this sale to the sale by data
-          // If the item exists, increment, else add it
-          var thisSale = salesData[i];
-          if (salesByItem[thisSale['itemId']]) {
-            salesByItem[thisSale['itemId']]['profit'] += thisSale['salePrice'] - thisSale['saleCost'];
-          } else {
-            salesByItem[thisSale['itemId']] = {
-              'itemName': thisSale['itemName'],
-              'profit': (thisSale['salePrice'] - thisSale['saleCost'])
-            };
-          }
-          // next, increment price and cost
-          costTotal += thisSale['saleCost'];
-          priceTotal += thisSale['salePrice'];
-        }
-
-        // console.log(salesByItem);
-
-        //find the best seller
-        var bestSeller = {'itemName': "", 'profit': 0};
-        for (var itemKey in salesByItem) {
-          var thisItem = salesByItem[itemKey];
-          if (thisItem['profit'] > bestSeller['profit']) {
-            bestSeller = {
-              'itemName': thisItem['itemName'],
-              'profit': thisItem['profit'].toFixed(2)
-            };
-          }
-        };
-
-        // Assign these to $scope for access by angular 
-        $scope.bestSeller = bestSeller;
-        $scope.costTotal = costTotal.toFixed(2);
-        $scope.priceTotal = priceTotal.toFixed(2);
-        $scope.salesTotal = (priceTotal - costTotal).toFixed(2);
-        $scope.summary_calculated = true;
-        console.log("POST REQUEST");
-        console.log($scope.summary_calculated);
-      });
-    }
-  };
-
 })
 
 
@@ -196,7 +138,7 @@ angular.module('erlenmeyer-stock.controllers', [])
 .controller('ItemsCtrl', function($scope, $stateParams) {
 })
 
-.controller('salesSummaryCtrl', function($scope, $stateParams) {
+.controller('salesSummaryCtrl', function($scope, $stateParams, $window, httpService) {
   
   // Initialse the scope variables
   $scope.bestSeller = "";
@@ -212,11 +154,10 @@ angular.module('erlenmeyer-stock.controllers', [])
     if (typeof(val) === 'undefined') {
       console.log('No date selected');
     } else {
-      var chosenDate = val;
       console.log('Selected date is : ', val);
-      $scope.fromDate = chosenDate;
+      $scope.fromDate = val;
       $scope.fromDatePicker['inputDate'] = $scope.fromDate;
-      $scope.getSalesSummary($scope.fromDate, $scope.toDate);
+      getSalesSummary($scope.fromDate, $scope.toDate);
     }
   };
 
@@ -224,11 +165,10 @@ angular.module('erlenmeyer-stock.controllers', [])
   if (typeof(val) === 'undefined') {
       console.log('No date selected');
     } else {
-      var chosenDate = val;
       console.log('Selected date is : ', val);
-      $scope.toDate = chosenDate;
+      $scope.toDate = val;
       $scope.toDatePicker['inputDate'] = $scope.toDate;
-      $scope.getSalesSummary($scope.fromDate, $scope.toDate);
+      getSalesSummary($scope.fromDate, $scope.toDate);
     }
   };
 
@@ -280,5 +220,61 @@ angular.module('erlenmeyer-stock.controllers', [])
   //       datePickerCallback(val);
   //     }
   //   };
+
+  var getSalesSummary = function(startDate, endDate) {
+
+    if (angular.isDefined(window.localStorage['current_user_id'])) {
+      userId = window.localStorage['current_user_id'];
+      
+      var salesDataPromise = httpService.salesData(userId, startDate, endDate);
+      salesDataPromise.then(function(result) {
+        var salesData = result;
+
+        var costTotal = 0;
+        var priceTotal = 0;
+        var salesByItem = {};
+
+        for (var i = salesData.length - 1; i >= 0; i--) {
+          // Add this sale to the 'sale by' data
+          // If the item exists, increment, else add it
+          var thisSale = salesData[i];
+          // If we already have this item type in mem, dont reinit it
+          if (salesByItem[thisSale['itemId']]) {
+            salesByItem[thisSale['itemId']]['profit'] += thisSale['salePrice'] - thisSale['saleCost'];
+          } else {
+            // It wasn't found, add to the object
+            salesByItem[thisSale['itemId']] = {
+              'itemName': thisSale['itemName'],
+              'profit': (thisSale['salePrice'] - thisSale['saleCost'])
+            };
+          }
+          // next, increment price and cost
+          costTotal += thisSale['saleCost'];
+          priceTotal += thisSale['salePrice'];
+        }
+
+        // console.log(salesByItem);
+
+        //find the best seller
+        var bestSeller = {'itemName': "", 'profit': 0};
+        for (var itemKey in salesByItem) {
+          var thisItem = salesByItem[itemKey];
+          if (thisItem['profit'] > bestSeller['profit']) {
+            bestSeller = {
+              'itemName': thisItem['itemName'],
+              'profit': thisItem['profit'].toFixed(2)
+            };
+          }
+        };
+
+        // Assign these to $scope for access by angular 
+        $scope.bestSeller = bestSeller;
+        $scope.costTotal = costTotal.toFixed(2);
+        $scope.priceTotal = priceTotal.toFixed(2);
+        $scope.salesTotal = (priceTotal - costTotal).toFixed(2);
+        $scope.summary_calculated = true;
+      });
+    }
+  };
 
 })
